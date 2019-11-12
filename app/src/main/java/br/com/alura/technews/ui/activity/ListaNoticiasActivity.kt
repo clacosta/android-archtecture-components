@@ -2,10 +2,8 @@ package br.com.alura.technews.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager.VERTICAL
@@ -24,7 +22,7 @@ private const val MENSAGEM_FALHA_CARREGAR_NOTICIAS = "Não foi possível carrega
 
 class ListaNoticiasActivity : AppCompatActivity() {
 
-//    private val repository by lazy {
+    //    private val repository by lazy {
 //        NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
 //    }
     private val adapter by lazy {
@@ -68,13 +66,14 @@ class ListaNoticiasActivity : AppCompatActivity() {
     }
 
     private fun buscaNoticias() {
-        viewModel.buscaTodos(
-            quandoSucesso = {
+        viewModel.buscaTodos().observe(this, Observer { resource ->
+            resource.dado?.let {
                 adapter.atualiza(it)
-            }, quandoFalha = {
+            }
+            resource.erro?.let {
                 mostraErro(MENSAGEM_FALHA_CARREGAR_NOTICIAS)
             }
-        )
+        })
     }
 
     private fun abreFormularioModoCriacao() {
