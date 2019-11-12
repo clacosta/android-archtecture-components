@@ -29,11 +29,15 @@ class NoticiaRepository(
     }
 
     fun salva(
-        noticia: Noticia,
-        quandoSucesso: (noticiaNova: Noticia) -> Unit,
-        quandoFalha: (erro: String?) -> Unit
-    ) {
-        salvaNaApi(noticia, quandoSucesso, quandoFalha)
+        noticia: Noticia
+    ): LiveData<Resourse<Void?>> {
+        val liveData = MutableLiveData<Resourse<Void?>>()
+        salvaNaApi(noticia, quandoSucesso = {
+            liveData.value = Resourse(null)
+        }, quandoFalha = { erro ->
+            liveData.value = Resourse(null, erro)
+        })
+        return liveData
     }
 
     fun remove(
