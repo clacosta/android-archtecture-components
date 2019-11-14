@@ -4,13 +4,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import br.com.alura.technews.model.Noticia
 import br.com.alura.technews.repository.NoticiaRepository
-import br.com.alura.technews.repository.Resourse
+import br.com.alura.technews.repository.Resource
 
 class ListaNoticiasViewModel(
     private val repository: NoticiaRepository
 ) : ViewModel() {
 
-    fun buscaTodos(): LiveData<Resourse<List<Noticia>?>> {
+    fun buscaTodos(): LiveData<Resource<List<Noticia>?>> {
         return repository.buscaTodos()
     }
 

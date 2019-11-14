@@ -1,4 +1,3 @@
-
 package br.com.alura.technews.ui.activity
 
 import android.content.Intent
@@ -54,9 +53,9 @@ class VisualizaNoticiaActivity : AppCompatActivity() {
 
     private fun buscaNoticiaSelecionada() {
         repository.buscaPorId(noticiaId, quandoSucesso = { noticiaEncontrada ->
-            noticiaEncontrada?.let {
-                this.noticia = it
-                preencheCampos(it)
+            noticiaEncontrada?.let { noticia ->
+                this.noticia = noticia
+                preencheCampos(noticia)
             }
         })
     }

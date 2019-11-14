@@ -10,7 +10,9 @@ import androidx.recyclerview.widget.LinearLayoutManager.VERTICAL
 import br.com.alura.technews.R
 import br.com.alura.technews.database.AppDatabase
 import br.com.alura.technews.model.Noticia
+import br.com.alura.technews.repository.FalhaResource
 import br.com.alura.technews.repository.NoticiaRepository
+import br.com.alura.technews.repository.SucessoResource
 import br.com.alura.technews.ui.activity.extensions.mostraErro
 import br.com.alura.technews.ui.recyclerview.adapter.ListaNoticiasAdapter
 import br.com.alura.technews.ui.viewmodel.ListaNoticiasViewModel
@@ -22,9 +24,6 @@ private const val MENSAGEM_FALHA_CARREGAR_NOTICIAS = "Não foi possível carrega
 
 class ListaNoticiasActivity : AppCompatActivity() {
 
-    //    private val repository by lazy {
-//        NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
-//    }
     private val adapter by lazy {
         ListaNoticiasAdapter(context = this)
     }
@@ -67,11 +66,17 @@ class ListaNoticiasActivity : AppCompatActivity() {
 
     private fun buscaNoticias() {
         viewModel.buscaTodos().observe(this, Observer { resource ->
-            resource.dado?.let {
-                adapter.atualiza(it)
+            resource.dado?.let { noticias ->
+                adapter.atualiza(noticias)
             }
-            resource.erro?.let {
-                mostraErro(MENSAGEM_FALHA_CARREGAR_NOTICIAS)
+            when (resource) {
+                is SucessoResource -> {
+                    //executa procedimento de sucesso
+                }
+                is FalhaResource -> {
+                    //executa procedimento de falha
+                    mostraErro(MENSAGEM_FALHA_CARREGAR_NOTICIAS)
+                }
             }
         })
     }

@@ -12,30 +12,42 @@ class NoticiaRepository(
     private val webclient: NoticiaWebClient = NoticiaWebClient()
 ) {
 
-    private val noticiasEncontradas = MutableLiveData<Resourse<List<Noticia>?>>()
+    private val noticiasEncontradas = MutableLiveData<Resource<List<Noticia>?>>()
 
-    fun buscaTodos(): LiveData<Resourse<List<Noticia>?>> {
-        val atualizaListaNoticias: (List<Noticia>) -> Unit = { noticias ->
-            noticiasEncontradas.value = Resourse(dado = noticias)
+    fun buscaTodos(): LiveData<Resource<List<Noticia>?>> {
+        buscaInterno(quandoSucesso = { noticias ->
+            quandoSucessoInterno(noticias)
+        })
+        buscaNaApi(quandoSucesso = { noticias ->
+            quandoSucessoNaApi(noticias)
+        }, quandoFalha = { erro ->
+            quandoFalhaNaApi(erro)
         }
-        buscaInterno(quandoSucesso = atualizaListaNoticias)
-        buscaNaApi(quandoSucesso = atualizaListaNoticias,
-            quandoFalha = { erro ->
-                val resourseAtual = noticiasEncontradas.value
-                val resourceDeFalha = criaResourceDeFalha<List<Noticia>?>(resourseAtual, erro)
-                noticiasEncontradas.value = resourceDeFalha
-            })
+        )
         return noticiasEncontradas
+    }
+
+    private fun quandoSucessoInterno(noticias: List<Noticia>) {
+        noticiasEncontradas.value = Resource(dado = noticias)
+    }
+
+    private fun quandoSucessoNaApi(noticias: List<Noticia>) {
+        noticiasEncontradas.value = SucessoResource(dado = noticias)
+    }
+
+    private fun quandoFalhaNaApi(erro: String?) {
+        val resourseAtual = noticiasEncontradas.value
+        noticiasEncontradas.value = FalhaResource(resourseAtual?.dado, erro)
     }
 
     fun salva(
         noticia: Noticia
-    ): LiveData<Resourse<Void?>> {
-        val liveData = MutableLiveData<Resourse<Void?>>()
+    ): LiveData<Resource<Void?>> {
+        val liveData = MutableLiveData<Resource<Void?>>()
         salvaNaApi(noticia, quandoSucesso = {
-            liveData.value = Resourse(null)
+            liveData.value = Resource(null)
         }, quandoFalha = { erro ->
-            liveData.value = Resourse(null, erro)
+            liveData.value = Resource(null, erro)
         })
         return liveData
     }
@@ -82,12 +94,10 @@ class NoticiaRepository(
     private fun buscaInterno(quandoSucesso: (List<Noticia>) -> Unit) {
         BaseAsyncTask(quandoExecuta = {
             dao.buscaTodos()
-
-        }, quandoFinaliza = {
-            quandoSucesso(it)
+        }, quandoFinaliza = { noticias ->
+            quandoSucesso(noticias)
         }).execute()
     }
-
 
     private fun salvaNaApi(
         noticia: Noticia,
@@ -124,8 +134,8 @@ class NoticiaRepository(
             dao.salva(noticia)
             dao.buscaPorId(noticia.id)
         }, quandoFinaliza = { noticiaEncontrada ->
-            noticiaEncontrada?.let {
-                quandoSucesso(it)
+            noticiaEncontrada?.let { noticia ->
+                quandoSucesso(noticia)
             }
         }).execute()
 
