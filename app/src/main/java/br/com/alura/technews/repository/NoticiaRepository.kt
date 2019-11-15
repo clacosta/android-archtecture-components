@@ -44,38 +44,53 @@ class NoticiaRepository(
         noticia: Noticia
     ): LiveData<Resource<Void?>> {
         val liveData = MutableLiveData<Resource<Void?>>()
-        salvaNaApi(noticia, quandoSucesso = {
-            liveData.value = SucessoResource(null)
-        }, quandoFalha = { erro ->
-            liveData.value = FalhaResource(null, erro)
-        })
+        salvaNaApi(noticia,
+            quandoSucesso = {
+                liveData.value = SucessoResource(null)
+            }, quandoFalha = { erro ->
+                liveData.value = FalhaResource(null, erro)
+            })
         return liveData
     }
 
     fun remove(
-        noticia: Noticia,
-        quandoSucesso: () -> Unit,
-        quandoFalha: (erro: String?) -> Unit
-    ) {
-        removeNaApi(noticia, quandoSucesso, quandoFalha)
+        noticia: Noticia
+    ): LiveData<Resource<Void?>> {
+        val liveData = MutableLiveData<Resource<Void?>>()
+        removeNaApi(noticia,
+            quandoSucesso = {
+                liveData.value = SucessoResource(null)
+            }, quandoFalha = { erro ->
+                liveData.value = FalhaResource(null, erro)
+            })
+        return liveData
     }
 
     fun edita(
-        noticia: Noticia,
-        quandoSucesso: (noticiaEditada: Noticia) -> Unit,
-        quandoFalha: (erro: String?) -> Unit
-    ) {
-        editaNaApi(noticia, quandoSucesso, quandoFalha)
+        noticia: Noticia
+    ): LiveData<Resource<Void?>> {
+        val liveData = MutableLiveData<Resource<Void?>>()
+        editaNaApi(noticia,
+            quandoSucesso = {
+                liveData.value = SucessoResource(null)
+            },
+            quandoFalha = { erro ->
+                liveData.value = FalhaResource(null, erro)
+            })
+        return liveData
     }
 
     fun buscaPorId(
-        noticiaId: Long,
-        quandoSucesso: (noticiaEncontrada: Noticia?) -> Unit
-    ) {
+        noticiaId: Long
+    ): LiveData<Resource<Noticia?>> {
+        val liveData = MutableLiveData<Resource<Noticia?>>()
         BaseAsyncTask(quandoExecuta = {
             dao.buscaPorId(noticiaId)
-        }, quandoFinaliza = quandoSucesso)
+        }, quandoFinaliza = { noticia ->
+            liveData.value = SucessoResource(noticia)
+        })
             .execute()
+        return liveData
     }
 
     private fun buscaNaApi(
@@ -110,7 +125,8 @@ class NoticiaRepository(
                 it?.let { noticiaSalva ->
                     salvaInterno(noticiaSalva, quandoSucesso)
                 }
-            }, quandoFalha = quandoFalha
+            },
+            quandoFalha = quandoFalha
         )
     }
 
@@ -178,7 +194,8 @@ class NoticiaRepository(
                 noticiaEditada?.let {
                     salvaInterno(noticiaEditada, quandoSucesso)
                 }
-            }, quandoFalha = quandoFalha
+            },
+            quandoFalha = quandoFalha
         )
     }
 

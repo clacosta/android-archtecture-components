@@ -26,10 +26,9 @@ class FormularioNoticiaActivity : AppCompatActivity() {
     private val noticiaId: Long by lazy {
         intent.getLongExtra(NOTICIA_ID_CHAVE, 0)
     }
-    private val repository by lazy {
-        NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
-    }
+
     private val viewModel by lazy {
+        val repository = NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
         val factory = FormularioNoticiaViewModelFactory(repository)
         ViewModelProviders.of(this, factory)
             .get(FormularioNoticiaViewModel::class.java)
@@ -51,10 +50,14 @@ class FormularioNoticiaActivity : AppCompatActivity() {
     }
 
     private fun preencheFormulario() {
-        repository.buscaPorId(noticiaId, quandoSucesso = { noticiaEncontrada ->
-            if (noticiaEncontrada != null) {
-                activity_formulario_noticia_titulo.setText(noticiaEncontrada.titulo)
-                activity_formulario_noticia_texto.setText(noticiaEncontrada.texto)
+        viewModel.buscaPorId(noticiaId).observe(this, Observer { resource ->
+            when (resource) {
+                is SucessoResource -> {
+                    resource.dado?.let { noticia ->
+                        activity_formulario_noticia_titulo.setText(noticia.titulo)
+                        activity_formulario_noticia_texto.setText(noticia.texto)
+                    }
+                }
             }
         })
     }
@@ -76,32 +79,16 @@ class FormularioNoticiaActivity : AppCompatActivity() {
     }
 
     private fun salva(noticia: Noticia) {
-        val falha = { _: String? ->
-            mostraErro(MENSAGEM_ERRO_SALVAR)
-        }
-        val sucesso = { _: Noticia ->
-            finish()
-        }
-
-        if (noticia.id > 0) {
-            repository.edita(
-                noticia,
-                quandoSucesso = sucesso,
-                quandoFalha = falha
-            )
-        } else {
-            viewModel.salva(noticia).observe(this, Observer { resource ->
-                when (resource) {
-                    is SucessoResource -> {
-                        finish()
-                    }
-                    is FalhaResource -> {
-                        mostraErro(MENSAGEM_ERRO_SALVAR)
-                    }
+        viewModel.salva(noticia).observe(this, Observer { resource ->
+            when (resource) {
+                is SucessoResource -> {
+                    finish()
                 }
-            })
-        }
+                is FalhaResource -> {
+                    mostraErro(MENSAGEM_ERRO_SALVAR)
+                }
+            }
+        })
     }
-
 
 }

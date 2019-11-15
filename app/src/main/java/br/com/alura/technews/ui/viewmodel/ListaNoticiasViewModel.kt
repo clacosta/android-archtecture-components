@@ -13,5 +13,4 @@ class ListaNoticiasViewModel(
     fun buscaTodos(): LiveData<Resource<List<Noticia>?>> {
         return repository.buscaTodos()
     }
-
 }
