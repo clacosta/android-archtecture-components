@@ -209,6 +209,8 @@ class ListaNoticiasActivityTest {
     @Test
     fun excluirNoticia() {
 
+        Thread.sleep(1000)
+
         val constraintLayout = onView(
             allOf(
                 childAtPosition(

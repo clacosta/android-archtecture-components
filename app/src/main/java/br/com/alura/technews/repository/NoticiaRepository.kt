@@ -1,7 +1,9 @@
 package br.com.alura.technews.repository
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import br.com.alura.technews.asynctask.BaseAsyncTask
 import br.com.alura.technews.database.dao.NoticiaDAO
 import br.com.alura.technews.model.Noticia
@@ -12,33 +14,26 @@ class NoticiaRepository(
     private val webclient: NoticiaWebClient = NoticiaWebClient()
 ) {
 
-    private val noticiasEncontradas = MutableLiveData<Resource<List<Noticia>?>>()
+    private val mediador = MediatorLiveData<Resource<List<Noticia>?>>()
 
     fun buscaTodos(): LiveData<Resource<List<Noticia>?>> {
-        buscaInterno(quandoSucesso = { noticias ->
-            quandoSucessoInterno(noticias)
-        })
-        
-        buscaNaApi(quandoSucesso = { noticias ->
-            quandoSucessoNaApi(noticias)
-        }, quandoFalha = { erro ->
-            quandoFalhaNaApi(erro)
+        mediador.addSource(buscaInterno()) { noticias ->
+            mediador.value = SucessoResource(dado = noticias)
         }
-        )
-        return noticiasEncontradas
-    }
-
-    private fun quandoSucessoInterno(noticias: List<Noticia>) {
-        noticiasEncontradas.value = Resource(dado = noticias)
-    }
-
-    private fun quandoSucessoNaApi(noticias: List<Noticia>) {
-        noticiasEncontradas.value = SucessoResource(dado = noticias)
-    }
-
-    private fun quandoFalhaNaApi(erro: String?) {
-        val resourseAtual = noticiasEncontradas.value
-        noticiasEncontradas.value = FalhaResource(resourseAtual?.dado, erro)
+        val falhasDaWebApiLiveData = MutableLiveData<Resource<List<Noticia>?>>()
+        mediador.addSource(falhasDaWebApiLiveData, Observer { resourceDeFalha ->
+            val resourceAtual = mediador.value
+            val resourceNovo: Resource<List<Noticia>?> = if (resourceAtual != null) {
+                FalhaResource(resourceAtual.dado, resourceDeFalha.erro)
+            } else {
+                resourceDeFalha
+            }
+            mediador.value = resourceNovo
+        })
+        buscaNaApi(quandoFalha = { erro ->
+            falhasDaWebApiLiveData.value = FalhaResource(null, erro)
+        })
+        return mediador
     }
 
     fun salva(
