@@ -4,11 +4,17 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import br.com.alura.technews.R
 import br.com.alura.technews.database.AppDatabase
 import br.com.alura.technews.model.Noticia
+import br.com.alura.technews.repository.FalhaResource
 import br.com.alura.technews.repository.NoticiaRepository
+import br.com.alura.technews.repository.SucessoResource
 import br.com.alura.technews.ui.activity.extensions.mostraErro
+import br.com.alura.technews.ui.viewmodel.FormularioNoticiaViewModel
+import br.com.alura.technews.ui.viewmodel.factory.FormularioNoticiaViewModelFactory
 import kotlinx.android.synthetic.main.activity_formulario_noticia.*
 
 private const val TITULO_APPBAR_EDICAO = "Editando notícia"
@@ -20,8 +26,11 @@ class FormularioNoticiaActivity : AppCompatActivity() {
     private val noticiaId: Long by lazy {
         intent.getLongExtra(NOTICIA_ID_CHAVE, 0)
     }
-    private val repository by lazy {
-        NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
+    private val viewModel by lazy {
+        val repository = NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
+        val factory = FormularioNoticiaViewModelFactory(noticiaId, repository)
+        ViewModelProviders.of(this, factory)
+            .get(FormularioNoticiaViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,10 +49,10 @@ class FormularioNoticiaActivity : AppCompatActivity() {
     }
 
     private fun preencheFormulario() {
-        repository.buscaPorId(noticiaId, quandoSucesso = { noticiaEncontrada ->
-            if (noticiaEncontrada != null) {
-                activity_formulario_noticia_titulo.setText(noticiaEncontrada.titulo)
-                activity_formulario_noticia_texto.setText(noticiaEncontrada.texto)
+        viewModel.buscaPorId().observe(this, Observer { noticia ->
+            noticia?.let { noticia ->
+                activity_formulario_noticia_titulo.setText(noticia.titulo)
+                activity_formulario_noticia_texto.setText(noticia.texto)
             }
         })
     }
@@ -65,27 +74,16 @@ class FormularioNoticiaActivity : AppCompatActivity() {
     }
 
     private fun salva(noticia: Noticia) {
-        val falha = { _: String? ->
-            mostraErro(MENSAGEM_ERRO_SALVAR)
-        }
-        val sucesso = { _: Noticia ->
-            finish()
-        }
-
-        if (noticia.id > 0) {
-            repository.edita(
-                noticia,
-                quandoSucesso = sucesso,
-                quandoFalha = falha
-            )
-        } else {
-            repository.salva(
-                noticia,
-                quandoSucesso = sucesso,
-                quandoFalha = falha
-            )
-        }
+        viewModel.salva(noticia).observe(this, Observer { resource ->
+            when (resource) {
+                is SucessoResource -> {
+                    finish()
+                }
+                is FalhaResource -> {
+                    mostraErro(MENSAGEM_ERRO_SALVAR)
+                }
+            }
+        })
     }
-
 
 }
