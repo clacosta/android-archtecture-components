@@ -15,7 +15,7 @@ import br.com.alura.technews.repository.NoticiaRepository
 import br.com.alura.technews.repository.SucessoResource
 import br.com.alura.technews.ui.activity.extensions.mostraErro
 import br.com.alura.technews.ui.viewmodel.VisualizaNoticiaViewModel
-import br.com.alura.technews.ui.viewmodel.factory.VisualizaNoticiaActivityFactory
+import br.com.alura.technews.ui.viewmodel.factory.VisualizaNoticiaViewModelFactory
 import kotlinx.android.synthetic.main.activity_visualiza_noticia.*
 
 private const val NOTICIA_NAO_ENCONTRADA = "Notícia não encontrada"
@@ -29,7 +29,7 @@ class VisualizaNoticiaActivity : AppCompatActivity() {
     }
     private val viewModel by lazy {
         val repository = NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
-        val factory = VisualizaNoticiaActivityFactory(noticiaId, repository)
+        val factory = VisualizaNoticiaViewModelFactory(noticiaId, repository)
         val provedor = ViewModelProviders.of(this, factory)
         provedor.get(VisualizaNoticiaViewModel::class.java)
     }

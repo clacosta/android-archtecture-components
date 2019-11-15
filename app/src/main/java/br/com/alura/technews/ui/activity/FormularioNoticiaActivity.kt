@@ -50,7 +50,7 @@ class FormularioNoticiaActivity : AppCompatActivity() {
 
     private fun preencheFormulario() {
         viewModel.buscaPorId().observe(this, Observer { noticia ->
-            noticia?.let {noticia ->
+            noticia?.let { noticia ->
                 activity_formulario_noticia_titulo.setText(noticia.titulo)
                 activity_formulario_noticia_texto.setText(noticia.texto)
             }

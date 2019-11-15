@@ -19,6 +19,7 @@ import org.hamcrest.TypeSafeMatcher
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.random.Random
 
 @LargeTest
 @RunWith(AndroidJUnit4::class)
@@ -125,9 +126,11 @@ class ListaNoticiasActivityTest {
         )
         actionMenuItemView.perform(click())
 
+        val random = Random.nextInt(0, 10000)
+
         val appCompatEditText = onView(
             allOf(
-                withId(R.id.activity_formulario_noticia_titulo), withText("testea"),
+//                withId(R.id.activity_formulario_noticia_titulo), withText("testea"),
                 childAtPosition(
                     childAtPosition(
                         withId(android.R.id.content),
@@ -138,11 +141,11 @@ class ListaNoticiasActivityTest {
                 isDisplayed()
             )
         )
-        appCompatEditText.perform(replaceText("testeb"))
+        appCompatEditText.perform(replaceText("teste$random"))
 
         val appCompatEditText2 = onView(
             allOf(
-                withId(R.id.activity_formulario_noticia_titulo), withText("testeb"),
+                withId(R.id.activity_formulario_noticia_titulo), withText("teste$random"),
                 childAtPosition(
                     childAtPosition(
                         withId(android.R.id.content),
@@ -157,7 +160,7 @@ class ListaNoticiasActivityTest {
 
         val appCompatEditText3 = onView(
             allOf(
-                withId(R.id.activity_formulario_noticia_texto), withText("testea"),
+//                withId(R.id.activity_formulario_noticia_texto), withText("testea"),
                 childAtPosition(
                     childAtPosition(
                         withId(android.R.id.content),
@@ -168,11 +171,11 @@ class ListaNoticiasActivityTest {
                 isDisplayed()
             )
         )
-        appCompatEditText3.perform(replaceText("testeb"))
+        appCompatEditText3.perform(replaceText("teste$random"))
 
         val appCompatEditText4 = onView(
             allOf(
-                withId(R.id.activity_formulario_noticia_texto), withText("testeb"),
+                withId(R.id.activity_formulario_noticia_texto), withText("teste$random"),
                 childAtPosition(
                     childAtPosition(
                         withId(android.R.id.content),
@@ -205,6 +208,7 @@ class ListaNoticiasActivityTest {
 
     @Test
     fun excluirNoticia() {
+
         val constraintLayout = onView(
             allOf(
                 childAtPosition(

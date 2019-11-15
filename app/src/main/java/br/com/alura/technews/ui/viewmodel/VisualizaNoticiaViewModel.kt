@@ -8,6 +8,8 @@ import br.com.alura.technews.repository.FalhaResource
 import br.com.alura.technews.repository.NoticiaRepository
 import br.com.alura.technews.repository.Resource
 
+private const val NOTICIA_NAO_ENCONTRADA = "Notícia não encontrada"
+
 class VisualizaNoticiaViewModel(
     private val id: Long,
     private val repository: NoticiaRepository
@@ -23,7 +25,7 @@ class VisualizaNoticiaViewModel(
         return noticiaEncontrada.value?.run {
             repository.remove(this)
         } ?: MutableLiveData<Resource<Void?>>().also { liveData ->
-            liveData.value = FalhaResource(null, "Notícia não encontrada")
+            liveData.value = FalhaResource(null, NOTICIA_NAO_ENCONTRADA)
         }
     }
 

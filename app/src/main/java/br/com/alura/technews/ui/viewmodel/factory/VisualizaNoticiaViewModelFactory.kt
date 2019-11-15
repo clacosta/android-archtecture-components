@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import br.com.alura.technews.repository.NoticiaRepository
 import br.com.alura.technews.ui.viewmodel.VisualizaNoticiaViewModel
 
-class VisualizaNoticiaActivityFactory(
+class VisualizaNoticiaViewModelFactory(
     private val id: Long,
     private val repository: NoticiaRepository
 ) : ViewModelProvider.Factory {

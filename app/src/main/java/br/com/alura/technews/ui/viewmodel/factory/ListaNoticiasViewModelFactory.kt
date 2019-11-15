@@ -7,7 +7,7 @@ import br.com.alura.technews.ui.viewmodel.ListaNoticiasViewModel
 
 class ListaNoticiasViewModelFactory(
     private val repository: NoticiaRepository
-) :ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
