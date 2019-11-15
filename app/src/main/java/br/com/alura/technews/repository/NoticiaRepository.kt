@@ -23,17 +23,24 @@ class NoticiaRepository(
         val falhasDaWebApiLiveData = MutableLiveData<Resource<List<Noticia>?>>()
         mediador.addSource(falhasDaWebApiLiveData, Observer { resourceDeFalha ->
             val resourceAtual = mediador.value
-            val resourceNovo: Resource<List<Noticia>?> = if (resourceAtual != null) {
-                FalhaResource(resourceAtual.dado, resourceDeFalha.erro)
-            } else {
-                resourceDeFalha
-            }
+            val resourceNovo =
+                retornaResourceNovo(resourceAtual, resourceDeFalha)
             mediador.value = resourceNovo
         })
         buscaNaApi(quandoFalha = { erro ->
             falhasDaWebApiLiveData.value = FalhaResource(null, erro)
         })
         return mediador
+    }
+
+    private fun retornaResourceNovo(
+        resourceAtual: Resource<List<Noticia>?>?,
+        resourceDeFalha: Resource<List<Noticia>?>
+    ): Resource<List<Noticia>?> {
+        if (resourceAtual != null) {
+            return FalhaResource(resourceAtual.dado, resourceDeFalha.erro)
+        }
+        return resourceDeFalha
     }
 
     fun salva(
