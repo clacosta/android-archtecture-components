@@ -1,7 +1,9 @@
 package br.com.alura.technews.repository
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import br.com.alura.technews.asynctask.BaseAsyncTask
 import br.com.alura.technews.database.dao.NoticiaDAO
 import br.com.alura.technews.model.Noticia
@@ -12,32 +14,33 @@ class NoticiaRepository(
     private val webclient: NoticiaWebClient = NoticiaWebClient()
 ) {
 
-    private val noticiasEncontradas = MutableLiveData<Resource<List<Noticia>?>>()
+    private val mediador = MediatorLiveData<Resource<List<Noticia>?>>()
 
     fun buscaTodos(): LiveData<Resource<List<Noticia>?>> {
-        buscaInterno(quandoSucesso = { noticias ->
-            quandoSucessoInterno(noticias)
-        })
-        buscaNaApi(quandoSucesso = { noticias ->
-            quandoSucessoNaApi(noticias)
-        }, quandoFalha = { erro ->
-            quandoFalhaNaApi(erro)
+        mediador.addSource(buscaInterno()) { noticias ->
+            mediador.value = SucessoResource(dado = noticias)
         }
-        )
-        return noticiasEncontradas
+        val falhasDaWebApiLiveData = MutableLiveData<Resource<List<Noticia>?>>()
+        mediador.addSource(falhasDaWebApiLiveData, Observer { resourceDeFalha ->
+            val resourceAtual = mediador.value
+            val resourceNovo =
+                retornaResourceNovo(resourceAtual, resourceDeFalha)
+            mediador.value = resourceNovo
+        })
+        buscaNaApi(quandoFalha = { erro ->
+            falhasDaWebApiLiveData.value = FalhaResource(null, erro)
+        })
+        return mediador
     }
 
-    private fun quandoSucessoInterno(noticias: List<Noticia>) {
-        noticiasEncontradas.value = Resource(dado = noticias)
-    }
-
-    private fun quandoSucessoNaApi(noticias: List<Noticia>) {
-        noticiasEncontradas.value = SucessoResource(dado = noticias)
-    }
-
-    private fun quandoFalhaNaApi(erro: String?) {
-        val resourseAtual = noticiasEncontradas.value
-        noticiasEncontradas.value = FalhaResource(resourseAtual?.dado, erro)
+    private fun retornaResourceNovo(
+        resourceAtual: Resource<List<Noticia>?>?,
+        resourceDeFalha: Resource<List<Noticia>?>
+    ): Resource<List<Noticia>?> {
+        if (resourceAtual != null) {
+            return FalhaResource(resourceAtual.dado, resourceDeFalha.erro)
+        }
+        return resourceDeFalha
     }
 
     fun salva(
@@ -83,40 +86,28 @@ class NoticiaRepository(
     fun buscaPorId(
         noticiaId: Long
     ): LiveData<Noticia?> {
-        val liveData = MutableLiveData<Noticia?>()
-        BaseAsyncTask(quandoExecuta = {
-            dao.buscaPorId(noticiaId)
-        }, quandoFinaliza = { noticia ->
-            liveData.value = noticia
-        })
-            .execute()
-        return liveData
+        return dao.buscaPorId(noticiaId)
     }
 
     private fun buscaNaApi(
-        quandoSucesso: (List<Noticia>) -> Unit,
         quandoFalha: (erro: String?) -> Unit
     ) {
         webclient.buscaTodas(
             quandoSucesso = { noticiasNovas ->
                 noticiasNovas?.let {
-                    salvaInterno(noticiasNovas, quandoSucesso)
+                    salvaInterno(noticiasNovas)
                 }
             }, quandoFalha = quandoFalha
         )
     }
 
-    private fun buscaInterno(quandoSucesso: (List<Noticia>) -> Unit) {
-        BaseAsyncTask(quandoExecuta = {
-            dao.buscaTodos()
-        }, quandoFinaliza = { noticias ->
-            quandoSucesso(noticias)
-        }).execute()
+    private fun buscaInterno(): LiveData<List<Noticia>> {
+        return dao.buscaTodos()
     }
 
     private fun salvaNaApi(
         noticia: Noticia,
-        quandoSucesso: (noticiaNova: Noticia) -> Unit,
+        quandoSucesso: () -> Unit,
         quandoFalha: (erro: String?) -> Unit
     ) {
         webclient.salva(
@@ -131,30 +122,24 @@ class NoticiaRepository(
     }
 
     private fun salvaInterno(
-        noticias: List<Noticia>,
-        quandoSucesso: (noticiasNovas: List<Noticia>) -> Unit
+        noticias: List<Noticia>
     ) {
         BaseAsyncTask(
             quandoExecuta = {
                 dao.salva(noticias)
-                dao.buscaTodos()
-            }, quandoFinaliza = quandoSucesso
+            }, quandoFinaliza = {}
         ).execute()
     }
 
     private fun salvaInterno(
         noticia: Noticia,
-        quandoSucesso: (noticiaNova: Noticia) -> Unit
+        quandoSucesso: () -> Unit
     ) {
         BaseAsyncTask(quandoExecuta = {
             dao.salva(noticia)
-            dao.buscaPorId(noticia.id)
-        }, quandoFinaliza = { noticiaEncontrada ->
-            noticiaEncontrada?.let { noticia ->
-                quandoSucesso(noticia)
-            }
+        }, quandoFinaliza = {
+            quandoSucesso()
         }).execute()
-
     }
 
     private fun removeNaApi(
@@ -185,7 +170,7 @@ class NoticiaRepository(
 
     private fun editaNaApi(
         noticia: Noticia,
-        quandoSucesso: (noticiaEditada: Noticia) -> Unit,
+        quandoSucesso: () -> Unit,
         quandoFalha: (erro: String?) -> Unit
     ) {
         webclient.edita(

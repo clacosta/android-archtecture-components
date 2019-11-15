@@ -11,15 +11,11 @@ import br.com.alura.technews.repository.Resource
 private const val NOTICIA_NAO_ENCONTRADA = "Notícia não encontrada"
 
 class VisualizaNoticiaViewModel(
-    private val id: Long,
+    id: Long,
     private val repository: NoticiaRepository
 ) : ViewModel() {
 
-    private val noticiaEncontrada = buscaPorId()
-
-    fun buscaPorId(): LiveData<Noticia?> {
-        return repository.buscaPorId(id)
-    }
+    val noticiaEncontrada = repository.buscaPorId(id)
 
     fun remove(): LiveData<Resource<Void?>> {
         return noticiaEncontrada.value?.run {
