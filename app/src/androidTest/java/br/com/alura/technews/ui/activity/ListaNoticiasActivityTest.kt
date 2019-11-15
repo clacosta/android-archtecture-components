@@ -1,8 +1,10 @@
 package br.com.alura.technews.ui.activity
 
 
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.*
@@ -211,6 +213,10 @@ class ListaNoticiasActivityTest {
 
         Thread.sleep(1000)
 
+        val recyclerView: RecyclerView = mActivityTestRule.activity
+            .findViewById(R.id.activity_lista_noticias_recyclerview)
+        val itemCountAntes = recyclerView.adapter?.itemCount
+      
         val constraintLayout = onView(
             allOf(
                 childAtPosition(
@@ -242,6 +248,11 @@ class ListaNoticiasActivityTest {
             )
         )
         actionMenuItemView.perform(click())
+
+        val itemCountDepois = recyclerView.adapter?.itemCount
+
+        assert(itemCountAntes?.minus(1) == itemCountDepois)
+
     }
 
     private fun childAtPosition(
