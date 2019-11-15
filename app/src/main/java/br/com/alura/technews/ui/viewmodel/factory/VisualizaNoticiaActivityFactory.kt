@@ -6,12 +6,13 @@ import br.com.alura.technews.repository.NoticiaRepository
 import br.com.alura.technews.ui.viewmodel.VisualizaNoticiaViewModel
 
 class VisualizaNoticiaActivityFactory(
+    private val id: Long,
     private val repository: NoticiaRepository
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return VisualizaNoticiaViewModel(repository) as T
+        return VisualizaNoticiaViewModel(id, repository) as T
     }
 
 }

@@ -29,7 +29,7 @@ class VisualizaNoticiaActivity : AppCompatActivity() {
     }
     private val viewModel by lazy {
         val repository = NoticiaRepository(AppDatabase.getInstance(this).noticiaDAO)
-        val factory = VisualizaNoticiaActivityFactory(repository)
+        val factory = VisualizaNoticiaActivityFactory(noticiaId, repository)
         val provedor = ViewModelProviders.of(this, factory)
         provedor.get(VisualizaNoticiaViewModel::class.java)
     }
@@ -61,16 +61,11 @@ class VisualizaNoticiaActivity : AppCompatActivity() {
     }
 
     private fun buscaNoticiaSelecionada() {
-        viewModel.buscaPorId(noticiaId).observe(this, Observer { resource ->
-            when (resource) {
-                is SucessoResource -> {
-                    resource.dado?.let { noticia ->
-                        this.noticia = noticia
-                        preencheCampos(noticia)
-                    }
-                }
+        viewModel.buscaPorId().observe(this, Observer { noticia ->
+            noticia?.let { noticia ->
+                this.noticia = noticia
+                preencheCampos(noticia)
             }
-
         })
     }
 
@@ -87,18 +82,16 @@ class VisualizaNoticiaActivity : AppCompatActivity() {
     }
 
     private fun remove() {
-        if (::noticia.isInitialized) {
-            viewModel.remove(noticia).observe(this, Observer { resource ->
-                when (resource) {
-                    is SucessoResource -> {
-                        finish()
-                    }
-                    is FalhaResource -> {
-                        mostraErro(MENSAGEM_FALHA_REMOCAO)
-                    }
+        viewModel.remove().observe(this, Observer { resource ->
+            when (resource) {
+                is SucessoResource -> {
+                    finish()
                 }
-            })
-        }
+                is FalhaResource -> {
+                    mostraErro(MENSAGEM_FALHA_REMOCAO)
+                }
+            }
+        })
     }
 
     private fun abreFormularioEdicao() {

@@ -7,8 +7,11 @@ import br.com.alura.technews.repository.NoticiaRepository
 import br.com.alura.technews.repository.Resource
 
 class FormularioNoticiaViewModel(
+    private val id: Long,
     private val repository: NoticiaRepository
 ) : ViewModel() {
+
+    private val noticiaEncontrada = buscaPorId()
 
     fun salva(noticia: Noticia): LiveData<Resource<Void?>> {
         if (noticia.id > 0) {
@@ -17,8 +20,8 @@ class FormularioNoticiaViewModel(
         return repository.salva(noticia)
     }
 
-    fun buscaPorId(noticiaId: Long): LiveData<Resource<Noticia?>> {
-        return repository.buscaPorId(noticiaId)
+    fun buscaPorId(): LiveData<Noticia?> {
+        return repository.buscaPorId(id)
     }
 
 }

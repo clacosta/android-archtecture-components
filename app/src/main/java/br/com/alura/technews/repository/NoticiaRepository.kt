@@ -82,12 +82,12 @@ class NoticiaRepository(
 
     fun buscaPorId(
         noticiaId: Long
-    ): LiveData<Resource<Noticia?>> {
-        val liveData = MutableLiveData<Resource<Noticia?>>()
+    ): LiveData<Noticia?> {
+        val liveData = MutableLiveData<Noticia?>()
         BaseAsyncTask(quandoExecuta = {
             dao.buscaPorId(noticiaId)
         }, quandoFinaliza = { noticia ->
-            liveData.value = SucessoResource(noticia)
+            liveData.value = noticia
         })
             .execute()
         return liveData
