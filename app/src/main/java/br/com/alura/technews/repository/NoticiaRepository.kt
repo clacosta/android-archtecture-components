@@ -45,9 +45,9 @@ class NoticiaRepository(
     ): LiveData<Resource<Void?>> {
         val liveData = MutableLiveData<Resource<Void?>>()
         salvaNaApi(noticia, quandoSucesso = {
-            liveData.value = Resource(null)
+            liveData.value = SucessoResource(null)
         }, quandoFalha = { erro ->
-            liveData.value = Resource(null, erro)
+            liveData.value = FalhaResource(null, erro)
         })
         return liveData
     }

@@ -10,9 +10,8 @@ class FormularioNoticiaViewModel(
     private val repository: NoticiaRepository
 ) : ViewModel() {
 
-    fun salva(noticia: Noticia) : LiveData<Resource<Void?>> {
+    fun salva(noticia: Noticia): LiveData<Resource<Void?>> {
         return repository.salva(noticia)
     }
-
 
 }
